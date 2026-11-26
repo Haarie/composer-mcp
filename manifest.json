@@ -1,0 +1,63 @@
+{
+  "manifest_version": "0.2",
+  "name": "composer-mcp",
+  "display_name": "SOLIDWORKS Composer",
+  "version": "1.0.1",
+  "description": "Drives SOLIDWORKS Composer on this PC through its COM API.",
+  "long_description": "Keeps a Composer window connected through one persistent PowerShell session: open files, read the full COM API, and run PowerShell scripts against Composer ($app.Open(...), $doc.RenderMode = 3, $app.RunRibbonCommand(32), ...). Works around Composer's broken IDispatch by calling its dual interfaces through the vtable. Windows only; Composer must be registered for COM (composer.exe /regserver).",
+  "author": {
+    "name": "Haarie",
+    "url": "https://github.com/Haarie"
+  },
+  "server": {
+    "type": "node",
+    "entry_point": "server/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": [
+        "${__dirname}/server/index.js"
+      ]
+    }
+  },
+  "tools": [
+    {
+      "name": "status",
+      "description": "Check or start the Composer connection"
+    },
+    {
+      "name": "open",
+      "description": "Open a file in Composer"
+    },
+    {
+      "name": "api_reference",
+      "description": "Full Composer COM API"
+    },
+    {
+      "name": "run_script",
+      "description": "Run PowerShell against Composer"
+    },
+    {
+      "name": "diagnose",
+      "description": "Troubleshoot the COM connection"
+    }
+  ],
+  "keywords": [
+    "solidworks",
+    "composer",
+    "svg",
+    "com"
+  ],
+  "compatibility": {
+    "platforms": [
+      "win32"
+    ],
+    "runtimes": {
+      "node": ">=16.0.0"
+    }
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Haarie/composer-mcp"
+  }
+}
