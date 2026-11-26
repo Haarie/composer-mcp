@@ -34,7 +34,7 @@ function global:Get-ToolbarButton($panel, [string]$text) {
       $f = $b.Split('|')
       if ($f[3].Trim() -like $text) {
         $r = $f[4].Split(',')
-        return @{ Toolbar = $tb; X = [int](([int]$r[0] + [int]$r[2]) / 2); Y = [int](([int]$r[1] + [int]$r[3]) / 2) }
+        return @{ Toolbar = $tb; Command = [int]$f[1]; X = [int](([int]$r[0] + [int]$r[2]) / 2); Y = [int](([int]$r[1] + [int]$r[3]) / 2) }
       }
     }
   }
@@ -116,8 +116,10 @@ function global:Invoke-CrSvgExport($app, $A) {
   if (-not $save) { throw 'Save As button not found in the Technical Illustration workshop.' }
   $cpid = [CrUi]::ProcessOf([IntPtr]([int64]$app.MainWindowHandle))
   $start = Get-Date
-  [CrUi]::Click($save.Toolbar, $save.X, $save.Y)
-  $dlg = Wait-ProcessDialog $cpid 'Save*' 15
+  # The toolbar command is sent to the workshop panel (a mouse click on the toolbar is not always picked up).
+  $null = [CrUi]::PostMessage([CrUi]::GetParent($save.Toolbar), 0x0111, [IntPtr]$save.Command, $save.Toolbar)   # WM_COMMAND
+  $dlg = Wait-ProcessDialog $cpid 'Save*' 5
+  if ($dlg -eq [IntPtr]::Zero) { [CrUi]::Click($save.Toolbar, $save.X, $save.Y); $dlg = Wait-ProcessDialog $cpid 'Save*' 10 }
   if ($dlg -eq [IntPtr]::Zero) { throw 'The save dialog did not appear.' }
 
   $name = if ($mode -eq 'view') { ([string]$A.view) + '.svg' } else { 'views.svg' }
