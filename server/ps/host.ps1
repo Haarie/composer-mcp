@@ -8,6 +8,7 @@ $global:app = $null
 $global:ApiDumpCs = $null
 $global:CrInterop = $null
 $global:CrPsRoot = $PSScriptRoot
+. (Join-Path $PSScriptRoot 'export.ps1')
 
 function ConvertTo-Plain($v, [int]$depth = 0) {
   if ($null -eq $v) { return $null }
@@ -152,6 +153,10 @@ function Invoke-Request($A) {
       $sb = [ScriptBlock]::Create([string]$A.code)
       $out = & $sb
       return [ordered]@{ ok = $true; result = (ConvertTo-Plain $out) }
+    }
+    'export_svg' {
+      $app = Get-App $false
+      return (Invoke-CrSvgExport $app $A)
     }
     'diagnose' {
       $progids = @(Get-ChildItem 'Registry::HKEY_CLASSES_ROOT' -ErrorAction SilentlyContinue |

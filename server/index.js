@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
-  SOLIDWORKS Composer MCP server (v1.0.1)
+  SOLIDWORKS Composer MCP server (v1.1.0)
   - No npm dependencies: speaks MCP (JSON-RPC 2.0, newline-delimited) over stdio itself.
   - Drives SOLIDWORKS Composer on Windows through COM (ProgID DSComposer.Application) via one
     persistent PowerShell process (keeps the COM connection, and so the Composer window, alive).
@@ -9,7 +9,7 @@
 const path = require('path');
 const { spawn } = require('child_process');
 
-const SERVER_INFO = { name: 'composer-mcp', version: '1.0.1' };
+const SERVER_INFO = { name: 'composer-mcp', version: '1.1.0' };
 const HOST_PS = path.join(__dirname, 'ps', 'host.ps1');
 const TIMEOUT_MS = 15 * 60 * 1000;
 const MARK = '@@CRMCP@@';
@@ -113,6 +113,24 @@ const TOOLS = [
     }
   },
   {
+    name: 'export_svg',
+    description: 'Export SVG files through the Technical Illustration workshop (the COM API itself cannot write vector files). ' +
+      'Uses the Technical Illustration profile you name (prefix match), or the one currently selected. ' +
+      'Default: every view of the active document as <viewname>.svg (Multiple > Views). Give view for one view, or views for a list. ' +
+      'Existing files with the same name are overwritten. Composer must have been started by this MCP (status start=true / open).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        folder: { type: 'string', description: 'Absolute Windows output folder; created if missing.' },
+        profile: { type: 'string', description: 'Technical Illustration profile name (prefix match), e.g. "Default".' },
+        view: { type: 'string', description: 'Export only this view (name as in the Views pane).' },
+        views: { type: 'array', items: { type: 'string' }, description: 'Export only these views, one by one.' },
+        timeout_s: { type: 'number', description: 'Maximum seconds to wait for Composer to finish. Default 600.' }
+      },
+      required: ['folder']
+    }
+  },
+  {
     name: 'diagnose',
     description: 'Troubleshoot: Composer COM registration in the registry, running Composer processes and whether this MCP is connected.',
     inputSchema: { type: 'object', properties: {} }
@@ -128,6 +146,11 @@ async function callTool(name, args, runner) {
   }
   if (name === 'api_reference') return runInComposer({ action: 'api_reference' }, runner);
   if (name === 'diagnose') return runInComposer({ action: 'diagnose' }, runner);
+  if (name === 'export_svg') {
+    if (!args.folder || typeof args.folder !== 'string') throw new Error('folder is required');
+    return runInComposer({ action: 'export_svg', folder: args.folder, profile: args.profile || null, view: args.view || null,
+      views: Array.isArray(args.views) && args.views.length ? args.views : null, timeout_s: args.timeout_s || null }, runner);
+  }
   if (name === 'run_script') {
     if (!args.code || typeof args.code !== 'string') throw new Error('code is required');
     return runInComposer({ action: 'run_script', code: args.code }, runner);
@@ -151,7 +174,7 @@ function createServer(options) {
           protocolVersion: (params && params.protocolVersion) || '2025-06-18',
           capabilities: { tools: { listChanged: false } },
           serverInfo: SERVER_INFO,
-          instructions: 'Controls SOLIDWORKS Composer on this Windows PC through its COM API. Start with status (start=true), then open; read api_reference before run_script.'
+          instructions: 'Controls SOLIDWORKS Composer on this Windows PC through its COM API. Start with status (start=true), then open; read api_reference before run_script. For SVG output use export_svg.'
         });
       case 'ping':
         return reply({});
