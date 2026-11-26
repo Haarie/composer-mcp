@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
-  SOLIDWORKS Composer MCP server (v1.1.0)
+  SOLIDWORKS Composer MCP server (v1.1.1)
   - No npm dependencies: speaks MCP (JSON-RPC 2.0, newline-delimited) over stdio itself.
   - Drives SOLIDWORKS Composer on Windows through COM (ProgID DSComposer.Application) via one
     persistent PowerShell process (keeps the COM connection, and so the Composer window, alive).
@@ -9,7 +9,7 @@
 const path = require('path');
 const { spawn } = require('child_process');
 
-const SERVER_INFO = { name: 'composer-mcp', version: '1.1.0' };
+const SERVER_INFO = { name: 'composer-mcp', version: '1.1.1' };
 const HOST_PS = path.join(__dirname, 'ps', 'host.ps1');
 const TIMEOUT_MS = 15 * 60 * 1000;
 const MARK = '@@CRMCP@@';
