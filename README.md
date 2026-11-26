@@ -12,6 +12,7 @@ No npm dependencies: a small Node.js server speaks MCP over stdio and forwards e
 | `open` | Open a file (`.smg`, `.smgXml`, `.smgProj`, `.stp`/`.step` and other formats Composer imports). Starts Composer if needed. |
 | `api_reference` | The complete Composer COM API, read from its type library: `IApplication` and `IDocument` members with parameter types, and all enums. |
 | `run_script` | Run PowerShell in the persistent session, with `$app` (application) and `$doc` (active document) predefined. |
+| `export_svg` | Export SVG files through the Technical Illustration workshop: all views (`<viewname>.svg`), one `view` or a list of `views`, with an optional workshop `profile`. Overwrites existing files. |
 | `diagnose` | COM registration, running Composer processes and connection state. |
 
 Example `run_script` code:
@@ -25,6 +26,15 @@ $doc.Save()
 ```
 
 Enums are plain integers; methods that return a document return a wrapped object, so `$app.Open($path).FileName` works.
+
+## SVG export
+
+Composer's COM API can save raster images (`SaveImage`, `SaveImageUsingProfile` with `.png`/`.jpg`) but has no call for vector output: `SaveImageUsingProfile` with a `.svg` path returns `False`. `export_svg` therefore drives the Technical Illustration workshop itself with Win32 messages: it opens the workshop, selects the profile in the profile list, ticks *Multiple > Views* (or unticks it for a single view), presses the workshop's *Save As...* toolbar button, fills in the save dialog, confirms overwrite prompts and waits until the files are written. It does not move the mouse or need keyboard focus.
+
+```json
+{ "folder": "C:\\Exports\\Steps", "profile": "Default" }
+{ "folder": "C:\\Exports\\Steps", "view": "Step 03" }
+```
 
 ## Why this exists: Composer's broken IDispatch
 
